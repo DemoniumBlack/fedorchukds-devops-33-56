@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'terraform/**'
   pull_request:
     branches:
       - main
+    paths:
+      - 'terraform/**'
 
 jobs:
   terraform:
@@ -21,17 +25,15 @@ jobs:
       uses: hashicorp/setup-terraform@v1
 
     - name: Terraform Init
-      id: init
-      run: terraform init -input=false ./terraform
+      run: terraform -chdir=./terraform init -input=false
 
     - name: Terraform Plan
-      id: plan
-      run: terraform plan -input=false -out=tfplan ./terraform
+      run: terraform -chdir=./terraform plan -input=false -out=tfplan
 
     - name: Terraform Apply
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: terraform apply -input=false -auto-approve tfplan
+      run: terraform -chdir=./terraform apply -input=false tfplan
 
     - name: Terraform Destroy
       if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
-      run: terraform destroy -input=false -auto-approve ./terraform
+      run: terraform -chdir=./terraform destroy -input=false -auto-approve
