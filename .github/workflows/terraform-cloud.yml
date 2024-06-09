@@ -1,0 +1,37 @@
+name: 'Terraform CI/CD'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Terraform Init
+      id: init
+      run: terraform init -input=false ./terraform
+
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -input=false -out=tfplan ./terraform
+
+    - name: Terraform Apply
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: terraform apply -input=false -auto-approve tfplan
+
+    - name: Terraform Destroy
+      if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
+      run: terraform destroy -input=false -auto-approve ./terraform
