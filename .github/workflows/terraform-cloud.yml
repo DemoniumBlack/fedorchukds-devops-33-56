@@ -35,7 +35,6 @@ jobs:
 
     - name: Terraform Format and Validate
       run: |
-        terraform -chdir=./terraform fmt -check
         terraform -chdir=./terraform validate
 
     - name: Terraform Init

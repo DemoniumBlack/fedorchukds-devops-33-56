@@ -23,7 +23,7 @@ output "Web_App_Network_Load_Balancer_Address" {
   description = "Адрес сетевого балансировщика Web App"
 }
 
-output "Web_App_Network_Load_Balancer_Address 2" {
+output "Web_App_Network_Load_Balancer_Address 3" {
   value = yandex_lb_network_load_balancer.nlb-web-app.listener.*.external_address_spec[0].*.address
   description = "Адрес сетевого балансировщика Web App"
 }
