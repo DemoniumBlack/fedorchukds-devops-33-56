@@ -33,12 +33,12 @@ jobs:
       with:
         terraform_version: "1.5.5" # Укажите актуальную версию
 
+    - name: Terraform Init
+      run: terraform -chdir=./terraform init
+
     - name: Terraform Format and Validate
       run: |
         terraform -chdir=./terraform validate
-
-    - name: Terraform Init
-      run: terraform -chdir=./terraform init
 
     - name: Terraform Plan
       run: terraform -chdir=./terraform plan -input=false -out=tfplan
