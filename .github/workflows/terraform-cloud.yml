@@ -17,6 +17,13 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
 
+    env:
+      YC_TOKEN: ${{ secrets.YC_TOKEN }}
+      YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
+      YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
     steps:
     - name: Checkout
       uses: actions/checkout@v2
