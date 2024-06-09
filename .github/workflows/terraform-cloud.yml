@@ -17,6 +17,13 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
 
+    env:
+      YC_TOKEN: ${{ secrets.YC_TOKEN }}
+      YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
+      YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -24,7 +31,12 @@ jobs:
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: "1.5.5"
+        terraform_version: "1.5.5" # Укажите актуальную версию
+
+    - name: Terraform Format and Validate
+      run: |
+        terraform -chdir=./terraform fmt -check
+        terraform -chdir=./terraform validate
 
     - name: Terraform Init
       run: terraform -chdir=./terraform init
@@ -36,6 +48,7 @@ jobs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: terraform -chdir=./terraform apply -input=false tfplan
 
+    # Удалите или закомментируйте следующий шаг, если не хотите автоматически удалять ресурсы
     - name: Terraform Destroy
-      if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main' && github.actor == 'trusted-contributor' # Укажите условие для запуска
       run: terraform -chdir=./terraform destroy -input=false -auto-approve
