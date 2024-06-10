@@ -19,7 +19,7 @@ variable "yandex_compute_instance_master" {
 
   default = [{
       vm_name = "master"
-      cores         = 4
+      cores         = 2
       memory        = 4
       core_fraction = 5
       count_vms = 1
