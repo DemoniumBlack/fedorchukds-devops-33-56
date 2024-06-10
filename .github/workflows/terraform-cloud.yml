@@ -53,5 +53,5 @@ jobs:
       run: terraform -chdir=./terraform apply -input=false tfplan
 
     - name: Terraform Destroy
-      if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main' && github.actor == 'trusted-contributor'
+      if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
       run: terraform -chdir=./terraform destroy -input=false -auto-approve
