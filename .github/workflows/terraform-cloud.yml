@@ -14,12 +14,12 @@ on:
   workflow_dispatch:
     inputs:
       destroy:
-        description: 'Set to "true" to destroy infrastructure'
-        required: false
+        description: 'Введите "destroy" для удаления инфраструктуры'
+        required: destroy
         default: 'false'
       apply:
-        description: 'Set to "true" to apply infrastructure changes'
-        required: false
+        description: 'Введите "apply" для создания инфраструктуры'
+        required: apply
         default: 'false'
 
 jobs:
@@ -60,15 +60,15 @@ jobs:
         -var="folder_id=${{ secrets.YC_FOLDER_ID }}" \
         -var="exclude_ansible=${{ env.TF_VAR_exclude_ansible }}"
 
-    - name: Terraform Apply (Automatic Trigger)
+    - name: Terraform Apply (Автоматически)
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: terraform -chdir=./terraform apply -input=false tfplan
 
-    - name: Terraform Apply (Manual Trigger)
+    - name: Terraform Apply (Вручную)
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.apply == 'true'
       run: terraform -chdir=./terraform apply -input=false tfplan
 
-    - name: Terraform Destroy (Manual Trigger)
+    - name: Terraform Destroy (Вручную)
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.destroy == 'true'
       run: |
         terraform -chdir=./terraform destroy -input=false -auto-approve \
