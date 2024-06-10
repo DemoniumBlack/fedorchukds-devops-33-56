@@ -43,7 +43,7 @@ jobs:
         terraform -chdir=./terraform validate
 
     - name: Terraform Plan
-      run: terraform -chdir=./terraform plan -input=false -out=tfplan
+      run: terraform -chdir=./terraform plan -input=false -out=tfplan -var="token=${{ secrets.YC_TOKEN }}" -var="cloud_id=${{ secrets.YC_CLOUD_ID }}" -var="folder_id=${{ secrets.YC_FOLDER_ID }}"
 
     - name: Terraform Apply
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
