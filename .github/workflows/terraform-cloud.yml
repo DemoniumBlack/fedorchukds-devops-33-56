@@ -39,16 +39,19 @@ jobs:
       run: terraform -chdir=./terraform init
 
     - name: Terraform Format and Validate
-      run: |
-        terraform -chdir=./terraform validate
+      run: terraform -chdir=./terraform validate
 
     - name: Terraform Plan
-      run: terraform -chdir=./terraform plan -input=false -out=tfplan -var="token=${{ secrets.YC_TOKEN }}" -var="cloud_id=${{ secrets.YC_CLOUD_ID }}" -var="folder_id=${{ secrets.YC_FOLDER_ID }}"
+      run: |
+        terraform -chdir=./terraform plan -input=false -out=tfplan \
+        -var="token=${{ secrets.YC_TOKEN }}" \
+        -var="cloud_id=${{ secrets.YC_CLOUD_ID }}" \
+        -var="folder_id=${{ secrets.YC_FOLDER_ID }}"
 
     - name: Terraform Apply
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: terraform -chdir=./terraform apply -input=false tfplan
 
     - name: Terraform Destroy
-      if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main' && github.actor == 'trusted-contributor' # Укажите условие для запуска
+      if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main' && github.actor == 'trusted-contributor'
       run: terraform -chdir=./terraform destroy -input=false -auto-approve
