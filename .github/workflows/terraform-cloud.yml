@@ -35,6 +35,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
       TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
       TF_VAR_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      TF_VAR_exclude_ansible: 'true'
 
     steps:
     - name: Checkout
@@ -56,7 +57,8 @@ jobs:
         terraform -chdir=./terraform plan -input=false -out=tfplan \
         -var="token=${{ secrets.YC_TOKEN }}" \
         -var="cloud_id=${{ secrets.YC_CLOUD_ID }}" \
-        -var="folder_id=${{ secrets.YC_FOLDER_ID }}"
+        -var="folder_id=${{ secrets.YC_FOLDER_ID }}" \
+        -var="exclude_ansible=${{ env.TF_VAR_exclude_ansible }}"
 
     - name: Terraform Apply (Automatic Trigger)
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
