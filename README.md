@@ -146,6 +146,7 @@
 Для выполнения работы, я буду использовать уже настроенную рабочую машину, со следующими компонентами:
 
 ```
+Terraform v1.5.5
 Ansible 2.16.6
 Python 3.11.2
 Docker 26.1.4
@@ -364,6 +365,24 @@ variable "subnet2" {
 
 Созданные виртуальные машины, сеть, подсети, сервисный аккаунт, статический ключ и S3-bucket удаляются успешно.
 
+Настрою автоматическое применение, удаление и обновление кода Terraform. Для этого воспользуюсь GitHub Actions. Пишу Workflow, который позволит запускать применение и удаление кода Terraform по условиям через события `workflow_dispatch`. При нажатии на кнопку `Run workflow` видим два условия, одно из них при введении `true` запустит создание инфраструктуры, другое при введении `true` запустит её удаление:
+
+![img_15](IMG/img_15.png)
+
+Также при `git push` кода Terraform в `main` ветку репозитория запустится автоматическое применение этого кода. Это необходимо для автоматического обновления облачной конфигурации при изменении каких либо ресурсов.
+
+Скриншот работы Workflow при обновлении конфигурации облачной инфраструктуры:
+
+![img_16](IMG/img_16.png)
+
+Также с помощью GitHub Actions можно удобно следить за изменением облачной инфраструктуры:
+
+![img_17](IMG/img_17.png)
+
+Код Workflow доступен по ссылке: https://github.com/DemoniumBlack/fedorchukds-devops-33-56/blob/main/.github/workflows/terraform-cloud.yml
+
+Выполненные GitHub Actions доступны по ссылке: https://github.com/DemoniumBlack/fedorchukds-devops-33-56/actions
+
 Полный код Terraform для создания сервисного аккаунта, статического ключа и S3-bucket доступен по ссылке:
 
 https://github.com/DemoniumBlack/fedorchukds-devops-33-56/blob/main/terraform-s3/
@@ -382,7 +401,7 @@ https://github.com/DemoniumBlack/fedorchukds-devops-33-56/blob/main/terraform/
 
 Клонирую репозиторий на свою рабочую машину:
 
-![img_15](IMG/img_15.png)
+![img_18](IMG/img_18.png)
 
 При разворачивании облачной инфраструктуры с помощью Terraform применяется следующий код:
 
@@ -435,19 +454,19 @@ ansible-playbook -i inventory/mycluster/hosts.yaml -u ubuntu --become --become-u
 
 Спустя некоторое время установка Kubernetes кластера методом Kubespray завершена:
 
-![img_16](IMG/img_16.png)
+![img_19](IMG/img_19.png)
 
 Далее нужно создать конфигурационный файл кластера Kubernetes.
 
 Для этого подключаюсь к Master ноде и выполняем следующие команды:
 
-![img_17](IMG/img_17.png)
+![img_20](IMG/img_20.png)
 
 Эти команды создают директорию для хранения файла конфигурации, копируют созданный при установке Kubernetes кластера конфигурационный файл в созданную директорию и назначает права для пользователя на директорию и файл конфигурации.
 
 Конфигурационный файл создан. Теперь можно проверить доступность подов и нод кластера:
 
-![img_18](IMG/img_18.png)
+![img_21](IMG/img_21.png)
 
 Поды и ноды кластера доступны и находятся в состоянии готовности, следовательно развёртывание Kubernetes кластера успешно завершено.
 
@@ -455,27 +474,27 @@ ansible-playbook -i inventory/mycluster/hosts.yaml -u ubuntu --become --become-u
 
 1. Создаю отдельный репозиторий для тестового приложения:
 
-![img_19](IMG/img_19.png)
+![img_22](IMG/img_22.png)
 
 Клонирую репозиторий на свою рабочую машину:
 
-![img_20](IMG/img_20.png)
+![img_23](IMG/img_23.png)
 
 Создаю статичную страничку, которая будет показывать картинку и текст:
 
-![img_21](IMG/img_21.png)
+![img_24](IMG/img_24.png)
 
-![img_22](IMG/img_22.png)
+![img_25](IMG/img_25.png)
 
 Сделаю коммит и отправлю созданную страницу в репозиторий:
 
-![img_23](IMG/img_23.png)
+![img_26](IMG/img_26.png)
 
 Ссылка на репозиторий: https://github.com/DemoniumBlack/diplom-test-site
 
 2. Пишу Dockerfile, который создаст контейнер с nginx и отобразит созданную страницу:
 
-![img_24](IMG/img_24.png)
+![img_27](IMG/img_27.png)
 
 ```
 FROM nginx:1.27.0
@@ -486,25 +505,25 @@ EXPOSE 80
 
 Авторизуюсь в Docker Hub:
 
-![img_25](IMG/img_25.png)
+![img_28](IMG/img_28.png)
 
 Создаю Docker образ:
 
-![img_26](IMG/img_26.png)
+![img_29](IMG/img_29.png)
 
 Проверю, создался ли образ:
 
-![img_27](IMG/img_27.png)
+![img_30](IMG/img_30.png)
 
 Образ создан.
 
 Опубликую созданный образ реестре Docker Hub:
 
-![img_28](IMG/img_28.png)
+![img_31](IMG/img_31.png)
 
 Проверю наличие образа в реестре Docker Hub:
 
-![img_29](IMG/img_29.png)
+![img_32](IMG/img_32.png)
 
 Ссылка на реестр Docker Hub: https://hub.docker.com/repository/docker/demonium1988/diplom-test-site/general
 
@@ -514,31 +533,35 @@ EXPOSE 80
 
 Для удобства управления созданным Kubernetes кластером, скопирую его конфигурационный файл на свою рабочую машину и заменю IP адрес сервера:
 
-![img_30](IMG/img_30.png)
+![img_33](IMG/img_33.png)
 
 Проверю результат:
 
-![img_31](IMG/img_31.png)
+![img_34](IMG/img_34.png)
 
 Kubernetes кластер доступен с рабочей машины.
 
 Добавлю репозиторий `prometheus-community` для его установки с помощью `helm`:
 
-![img_32](IMG/img_32.png)
+`helm repo add prometheus-community https://prometheus-community.github.io/helm-charts`
+
+![img_35](IMG/img_35.png)
 
 Для доступа к Grafana снаружи кластера Kubernetes буду использовать тип сервиса `NodePort`.
 
 Сохраню значения по умолчанию Helm чарта `prometheus-community` в файл и отредактирую его:
 
-![img_33](IMG/img_33.png)
+`helm show values prometheus-community/kube-prometheus-stack > helm-prometheus/values.yaml`
+
+![img_36](IMG/img_36.png)
 
 Изменю пароль по умолчанию для входа в Grafana:
 
-![img_34](IMG/img_34.png)
+![img_37](IMG/img_37.png)
 
 Изменю сервис и присвою ему порт 30050:
 
-![img_35](IMG/img_35.png)
+![img_38](IMG/img_38.png)
 
 ```
 grafana:
@@ -550,13 +573,15 @@ grafana:
 
 Используя Helm и подготовленный файл значений `values.yaml` выполню установку `prometheus-community`:
 
-![img_36](IMG/img_36.png)
+`helm upgrade --install monitoring prometheus-community/kube-prometheus-stack --create-namespace -n monitoring -f helm-prometheus/values.yaml`
+
+![img_39](IMG/img_39.png)
 
 При установке был создан отдельный Namespace с названием `monitoring`.
 
 Проверю результат установки:
 
-![img_37](IMG/img_37.png)
+![img_40](IMG/img_40.png)
 
 Установка была выполнена с заданными в `values.yaml` значениями.
 
@@ -564,15 +589,15 @@ grafana:
 
 Открою web-интерфейс Grafana:
 
-![img_38](IMG/img_38.png)
+![img_41](IMG/img_41.png)
 
 Авторизуюсь в Grafana с заранее заданным в `values.yaml` паролем:
 
-![img_39](IMG/img_39.png)
+![img_42](IMG/img_42.png)
 
 Авторизация проходит успешно, данные о состоянии кластера отображаются на дашбордах:
 
-![img_40](IMG/img_40.png)
+![img_43](IMG/img_43.png)
 
 Развёртывание системы мониторинга успешно завершено.
 
@@ -580,19 +605,19 @@ grafana:
 
 Создаю отдельный Namespace, в котором буду развёртывать тестовое приложение:
 
-![img_41](IMG/img_41.png)
+![img_44](IMG/img_44.png)
 
 Пишу манифест Deployment с тестовым приложением:
 
-![img_42](IMG/img_42.png)
+![img_45](IMG/img_45.png)
 
 Применю манифест Deployment и проверю результат:
 
-![img_43](IMG/img_43.png)
+![img_46](IMG/img_46.png)
 
 Deployment создан и запущен. Проверю его работу:
 
-![img_44](IMG/img_44.png)
+![img_47](IMG/img_47.png)
 
 Приложение работает.
 
@@ -600,15 +625,15 @@ Deployment создан и запущен. Проверю его работу:
 
 Пишу манифест сервиса с типом NodePort для доступа к web-интерфейсу тестового приложения:
 
-![img_45](IMG/img_45.png)
+![img_48](IMG/img_48.png)
 
 Применю манифест сервиса и проверю результат:
 
-![img_46](IMG/img_46.png)
+![img_49](IMG/img_49.png)
 
 Сервис создан. Теперь проверю доступ к приложению извне:
 
-![img_47](IMG/img_47.png)
+![img_50](IMG/img_50.png)
 
 Сайт открывается, приложение доступно.
 
@@ -623,17 +648,17 @@ Deployment создан и запущен. Проверю его работу:
 
 После применения балансировщика нагрузки к облачной инфраструктуре Outputs выглядит следующим образом:
 
-![img_48](IMG/img_48.png)
+![img_51](IMG/img_51.png)
 
 Проверю работу балансировщика нагрузки. Тестовое приложение будет открываться по порту 80, а Grafana будет открываться по порту 3000:
 
 * Тестовое приложение:
 
-![img_49](IMG/img_49.png)
+![img_52](IMG/img_52.png)
 
 * Grafana:
 
-![img_50](IMG/img_50.png)
+![img_53](IMG/img_53.png)
 
 Также видно, что в Grafana отобразился созданный Namespace и Deployment с подами.
 
@@ -645,23 +670,27 @@ Deployment создан и запущен. Проверю его работу:
 
 Создаю в GitLab новый пустой проект с именем `diplom-test-site`.
 
-![img_51](IMG/img_51.png)
+![img_54](IMG/img_54.png)
 
 Отправлю созданную ранее статичную страницу и Dockerfile из старого репозитория GitHub в новый проект на GitLab:
 
-![img_52](IMG/img_52.png)
+![img_55](IMG/img_55.png)
 
-![img_53](IMG/img_53.png)
+![img_56](IMG/img_56.png)
 
 Для автоматизации процесса CI/CD мне нужен GitLab Runner, который будет выполнять задачи, указанные в файле `.gitlab-ci.yml`.
 
 На странице настроек проекта в разделе подключения GitLab Runner создаю Runner. Указанные на странице данные понадобятся для регистрации и аутентификации Runner'а в проекте.
 
-![img_54](IMG/img_54.png)
+![img_57](IMG/img_57.png)
 
 Выполню подготовку Kubernetes кластера к установке GitLab Runner'а. Создам отдельный Namespace, в котором будет располагаться GitLab Runner и создам Kubernetes secret, который будет использоваться для регистрации установленного в дальнейшем GitLab Runner:
 
-![img_55](IMG/img_55.png)
+`kubectl create ns gitlab-runner`
+
+`kubectl create secret generic gitlab-runner --from-literal=runner-registration-token="<token>" --from-literal=runner-token="..."`
+
+![img_58](IMG/img_58.png)
 
 Также понадобится подготовить файл значений `values.yaml`, для того, чтобы указать в нем количество Runners, время проверки наличия новых задач, настройка логирования, набор правил для доступа к ресурсам Kubernetes, ограничения на ресурсы процессора и памяти.
 
@@ -669,16 +698,19 @@ Deployment создан и запущен. Проверю его работу:
 
 Приступаю к установке GitLab Runner. Устанавливать буду используя Helm:
 
-![img_56](IMG/img_56.png)
+`helm repo add gitlab https://charts.gitlab.io`
+
+`helm install gitlab-runner gitlab/gitlab-runner -n gitlab-runner -f helm-runner/values.yaml`
+
+![img_59](IMG/img_59.png)
 
 Проверю результат установки:
 
-![img_57](IMG/img_57.png)
+![img_60](IMG/img_60.png)
 
 GitLab Runner установлен и запущен. Также можно через web-интерфейс проверить, подключился ли GitLab Runner к GitLab репозиторию:
 
-![img_58](IMG/img_58.png)
+![img_61](IMG/img_61.png)
 
 Подключение GitLab Runner к репозиторию GitLab завершено.
 
-1
