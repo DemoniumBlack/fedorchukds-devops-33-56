@@ -762,6 +762,8 @@ Pipeline будет разделен на две стадии:
 
 ![img_69](IMG/img_69.png)
 
+Ссылка на выполненные Pipelines: https://gitlab.com/DemoniumBlack/diplom-test-site/-/pipelines
+
 ### Итоги выполненной работы:
 
 * Репозиторий с конфигурационными файлами Terraform: 
