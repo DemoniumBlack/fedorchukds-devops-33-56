@@ -543,7 +543,7 @@ Kubernetes кластер доступен с рабочей машины.
 
 Добавлю репозиторий `prometheus-community` для его установки с помощью `helm`:
 
-`helm repo add prometheus-community https://prometheus-community.github.io/helm-charts`
+```helm repo add prometheus-community https://prometheus-community.github.io/helm-charts```
 
 ![img_35](IMG/img_35.png)
 
@@ -551,7 +551,7 @@ Kubernetes кластер доступен с рабочей машины.
 
 Сохраню значения по умолчанию Helm чарта `prometheus-community` в файл и отредактирую его:
 
-`helm show values prometheus-community/kube-prometheus-stack > helm-prometheus/values.yaml`
+```helm show values prometheus-community/kube-prometheus-stack > helm-prometheus/values.yaml```
 
 ![img_36](IMG/img_36.png)
 
@@ -573,7 +573,7 @@ grafana:
 
 Используя Helm и подготовленный файл значений `values.yaml` выполню установку `prometheus-community`:
 
-`helm upgrade --install monitoring prometheus-community/kube-prometheus-stack --create-namespace -n monitoring -f helm-prometheus/values.yaml`
+```helm upgrade --install monitoring prometheus-community/kube-prometheus-stack --create-namespace -n monitoring -f helm-prometheus/values.yaml```
 
 ![img_39](IMG/img_39.png)
 
@@ -686,9 +686,9 @@ Deployment создан и запущен. Проверю его работу:
 
 Выполню подготовку Kubernetes кластера к установке GitLab Runner'а. Создам отдельный Namespace, в котором будет располагаться GitLab Runner и создам Kubernetes secret, который будет использоваться для регистрации установленного в дальнейшем GitLab Runner:
 
-`kubectl create ns gitlab-runner`
+```kubectl create ns gitlab-runner```
 
-`kubectl create secret generic gitlab-runner --from-literal=runner-registration-token="<token>" --from-literal=runner-token="..."`
+```kubectl --namespace=gitlab-runner create secret generic runner-secret --from-literal=runner-registration-token="<token>" --from-literal=runner-token=""```
 
 ![img_58](IMG/img_58.png)
 
@@ -698,9 +698,9 @@ Deployment создан и запущен. Проверю его работу:
 
 Приступаю к установке GitLab Runner. Устанавливать буду используя Helm:
 
-`helm repo add gitlab https://charts.gitlab.io`
+```helm repo add gitlab https://charts.gitlab.io```
 
-`helm install gitlab-runner gitlab/gitlab-runner -n gitlab-runner -f helm-runner/values.yaml`
+```helm install gitlab-runner gitlab/gitlab-runner -n gitlab-runner -f helm-runner/values.yaml```
 
 ![img_59](IMG/img_59.png)
 
@@ -714,3 +714,86 @@ GitLab Runner установлен и запущен. Также можно че
 
 Подключение GitLab Runner к репозиторию GitLab завершено.
 
+Для выполнения GitLab CI/CD Pipeline мне понадобится в настройках созданного проекта в разделе Variables указать переменные:
+
+![img_62](IMG/img_62.png)
+
+В переменных указан адрес реестра Docker Hub, данные для авторизации в нем, а также имя собираемого образа и конфигурационный файл Kubernetes для доступа к развёрнутому выше кластеру. Для большей безопасности конфигурационный файл Kubernetes буду размещать в формате `base64`. Также часть переменных будет указана в самом файле `.gitlab-ci.yml`.
+
+Пишу конфигурайионный файл `.gitlab-ci.yml` для автоматической сборки docker image и деплоя приложения при изменении кода.
+
+Pipeline будет разделен на две стадии:
+1. На первой стадии (build) будет происходить авторизация в Docker Hub, сборка образа и его публикация в реестре Docker Hub. Сборка образа будет происходить только для `main` ветки и только в GitLab Runner с тегом `diplom`. Сам процесс сборки происходит следующим образом - если при git push указан тег, то Docker образ будет создан именно с этим тегом. Если при git push тэг не указывать, то Docker образ будет собран с тегом `latest'.
+Поскольку мне не удалось запустить Docker-in-Dpcker в GitLab Rinner и я получал ошибку доступа к docker.socket, сборка будет происходить на основе контейнера `gcr.io/kaniko-project/executor:v1.22.0-debug`.
+
+2. На второй стадии (deploy) будет применяться конфигурационный файл для доступа к кластеру Kubernetes и манифесты из git репозитория. Также будет перезапущен Deployment методом `rollout restart` для применения обновленного приложение. Такой метод обновления может быть полезен, например, если нужно обновить Frontend часть приложения незаметно для пользователя этого приложения. Эта стадия выполняться только для ветки `main` и на GitLab Runner с тегом `diplom` и только при условии, что первая стадия `build` была выполнена успешно.
+
+Проверю работу Pipeline. Исходная страница приложения:
+
+![img_63](IMG/img_63.png)
+
+Внесу в репозиторий изменения и отправлю из в Git с указанием тега:
+
+![img_64](IMG/img_64.png)
+
+Проверю, с каким тегом создался образ в Docker Hub:
+
+![img_65](IMG/img_65.png)
+
+Образ создался с тегом v0.2.
+
+Проверю, обновилась ли страница приложения:
+
+![img_66](IMG/img_66.png)
+
+Страница приложения также обновилась.
+
+Теперь проверю создание образа с тегом `latest` при отсутствии тега при git push:
+
+![img_67](IMG/img_67.png)
+
+Проверю, с каким тегом создался образ в Docker Hub:
+
+![img_68](IMG/img_68.png)
+
+Образ создался с тегом `latest`.
+
+Также обновилась страница приложения:
+
+![img_69](IMG/img_69.png)
+
+### Итоги выполненной работы:
+
+* Репозиторий с конфигурационными файлами Terraform: 
+
+https://github.com/DemoniumBlack/fedorchukds-devops-33-56/blob/main/terraform-s3/
+
+https://github.com/DemoniumBlack/fedorchukds-devops-33-56/blob/main/terraform/
+
+* CI-CD-terraform pipeline:
+
+https://github.com/DemoniumBlack/fedorchukds-devops-33-56/blob/main/.github/workflows/terraform-cloud.yml
+
+* Репозиторий с конфигурацией ansible:
+
+Был использован обычный репозиторий Kubespray - https://github.com/kubernetes-sigs/kubespray
+
+* Репозиторий с Dockerfile тестового приложения:
+
+https://gitlab.com/DemoniumBlack/diplom-test-site
+
+* Ссылка на собранный Docker Image:
+
+https://hub.docker.com/repository/docker/demonium1988/diplom-test-site/tags
+
+* Ссылка на тестовое приложение:
+
+http://158.160.171.65/
+
+* Ссылка на web-интерфейс Grafana с данными доступа:
+
+http://158.160.175.47:3000/login
+
+```login: admin```
+
+```password: AdminSuperPass```
